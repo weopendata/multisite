@@ -124,7 +124,7 @@ class AddSite extends Command
     protected function getArguments()
     {
         return array(
-            array('sitename', InputArgument::REQUIRED, 'The name of the site.'),
+            array('sitename', InputArgument::REQUIRED, 'The name of the site to add.'),
         );
     }
 

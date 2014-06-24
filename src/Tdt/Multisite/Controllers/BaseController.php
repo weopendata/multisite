@@ -98,7 +98,7 @@ class BaseController extends \Controller
             case 'logout':
                 $controller = \App::make('Tdt\\Core\\Ui\\AuthController');
 
-                $function = $http_method . ucfirst($api_method);
+                $function = $http_method . ucfirst($api_aspect);
                 break;
             case 'datasets':
                 $controller = \App::make('Tdt\\Core\\Ui\\DatasetController');

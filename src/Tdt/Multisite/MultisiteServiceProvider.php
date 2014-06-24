@@ -3,6 +3,7 @@
 use Illuminate\Support\ServiceProvider;
 
 use Tdt\Multisite\Commands\AddSite;
+use Tdt\Multisite\Commands\DeleteSite;
 
 class MultisiteServiceProvider extends ServiceProvider
 {
@@ -22,7 +23,13 @@ class MultisiteServiceProvider extends ServiceProvider
             return new AddSite();
         });
 
+        $this->app['multisite.delete'] = $this->app->share(function ($app) {
+            return new DeleteSite();
+        });
+
         $this->commands('multisite.add');
+
+        $this->commands('multisite.delete');
 
         include __DIR__ . '/../../routes.php';
     }

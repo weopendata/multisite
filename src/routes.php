@@ -5,8 +5,8 @@
  * Hijack all of the routes
  */
 
-Route::any('{site}/api/admin', function ($site) {
-    return Redirect::to($site . '/api/admin/datasets');
+Route::any('{site}/api/admin', function () {
+    return Redirect::to('api/admin/datasets');
 })
 ->where('site', '[^\/]+');
 

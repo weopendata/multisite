@@ -23,7 +23,15 @@ class URL extends BaseURL
             return parent::to($url);
         }
 
-        $pieces = explode('/', \Request::path());
+        $root = \Request::root();
+
+        $fullUrl = \Request::fullUrl();
+
+        $segments = str_replace($root, '', $fullUrl);
+
+        $segments = ltrim($segments, '/');
+
+        $pieces = explode('/', $segments);
 
         $site = array_shift($pieces);
 
