@@ -3,6 +3,7 @@
 namespace Tdt\Multisite\Facades;
 
 use Illuminate\Support\Facades\URL as BaseURL;
+use Tdt\Multisite\Controllers\BaseController;
 
 class URL extends BaseURL
 {
@@ -19,7 +20,7 @@ class URL extends BaseURL
 
         $assets = array('img', 'fonts', 'js', 'packages', 'css');
 
-        if (in_array(array_shift($pieces), $assets)) {
+        if (in_array(array_shift($pieces), $assets) || !BaseController::$STRIP_SLUG) {
             return parent::to($url);
         }
 

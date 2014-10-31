@@ -3,6 +3,7 @@
 namespace Tdt\Multisite\Facades;
 
 use Illuminate\Support\Facades\Request as BaseRequest;
+use Tdt\Multisite\Controllers\BaseController;
 
 class Request extends BaseRequest
 {
@@ -14,15 +15,24 @@ class Request extends BaseRequest
      */
     public static function segment($index)
     {
-        return parent::segment($index + 1);
+        if (BaseController::$STRIP_SLUG) {
+            return parent::segment($index + 1);
+        }
+
+        return parent::segment($index);
     }
 
     public static function path()
     {
-        $pieces = explode('/', parent::path());
+        if (BaseController::$STRIP_SLUG) {
 
-        array_shift($pieces);
-        //return parent::path();
-        return implode('/', $pieces);
+            $pieces = explode('/', parent::path());
+
+            array_shift($pieces);
+
+            return implode('/', $pieces);
+        }
+
+        return parent::path();
     }
 }

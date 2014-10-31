@@ -5,5 +5,5 @@ class MultiSite extends Eloquent
 
     protected $table = 'multisite';
 
-    protected $fillable = array('driver', 'database', 'prefix', 'username', 'password', 'sitename');
+    protected $fillable = array('driver', 'database', 'prefix', 'username', 'password', 'sitename', 'domain');
 }

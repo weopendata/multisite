@@ -5,6 +5,8 @@ namespace Tdt\Multisite\Controllers;
 class BaseController extends \Controller
 {
 
+    public static $STRIP_SLUG;
+
     public function handle($url)
     {
         // Split the uri to check for an (optional) extension (=format)
@@ -16,26 +18,48 @@ class BaseController extends \Controller
         // meaning /multi-site-identifier/rest/goes/here
         if (!empty($identifier)) {
 
-            // Chip off the site identifier
-            $pieces = explode('/', $identifier);
+            // Check if the domain is mapped onto a site slug
+            $site = $this->checkForDomain();
 
-            $site = array_shift($pieces);
-
-            if (empty($site)) {
-                $this->showHomePage();
-            } else {
+            if (!empty($site)) {
+                self::$STRIP_SLUG = false;
 
                 // Fetch the configuration for the site
-                $site_config = $this->getSite($site);
+                $site_config = $site->toArray();
 
                 // Swap the database configuration
                 $this->switchDatabase($site_config);
 
-                $resource_identifier = implode('/', $pieces);
-
                 $base_controller = new \Tdt\Core\BaseController();
 
-                return $base_controller->handleRequest($resource_identifier);
+                $response = $base_controller->handleRequest($identifier);
+
+                $view = $response->getOriginalContent();
+
+                return $response;
+            } else {
+                // Try to find the site identifier and look for a match
+                $pieces = explode('/', $identifier);
+
+                $site = array_shift($pieces);
+
+                if (empty($site)) {
+                    $this->showHomePage();
+                } else {
+                    self::$STRIP_SLUG = true;
+
+                    // Fetch the configuration for the site
+                    $site_config = $this->getSite($site);
+
+                    // Swap the database configuration
+                    $this->switchDatabase($site_config);
+
+                    $resource_identifier = implode('/', $pieces);
+
+                    $base_controller = new \Tdt\Core\BaseController();
+
+                    return $base_controller->handleRequest($resource_identifier);
+                }
             }
         } else {
             $this->showHomePage();
@@ -124,6 +148,22 @@ class BaseController extends \Controller
         }
 
         return $controller->$function();
+    }
+
+    /**
+     * Check if the domain is mapped onto a site slug
+     *
+     * @return null|array MultiSite
+     */
+    private function checkForDomain()
+    {
+        $domain = \Request::root();
+
+        // Remove the http:// and https:// scheme's
+        $domain = str_replace('http://', '', $domain);
+        $domain = str_replace('https://', '', $domain);
+
+        return \MultiSite::where('domain', '=', $domain)->first();
     }
 
     /**
