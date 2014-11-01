@@ -1,0 +1,8 @@
+Makefile
+*.DS_Store
+.settings
+.buildpath
+.project
+tmp/*
+/vendor
+composer.phar

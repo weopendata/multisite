@@ -29,7 +29,7 @@ class MultisiteServiceProvider extends ServiceProvider
 
         $this->commands('multisite.add');
 
-        //$this->commands('multisite.delete');
+        $this->commands('multisite.delete');
 
         include __DIR__ . '/../../routes.php';
     }

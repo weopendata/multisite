@@ -31,7 +31,6 @@ class AddSite extends Command
      */
     public function fire()
     {
-
         $sitename = $this->argument('sitename');
 
         // Check if the job exists
@@ -55,6 +54,9 @@ class AddSite extends Command
         // Ask for the username of the database
         $user = $this->askNotNull('Provide the name of the user (needs write permissions): ');
 
+        // Ask for the password of the user
+        $password = $this->ask('Provide the password of the user: ');
+
         // Ask for the host of the database
         $host = $this->askNotNull('Provide the host of the database: ');
 
@@ -72,8 +74,10 @@ class AddSite extends Command
             $collation = 'utf8_general_ci';
         }
 
-        // Ask for the password of the user
-        $password = $this->ask('Provide the password of the user: ');
+        // Ask for the domain of the multisite (optional)
+        $domain = $this->ask(
+            'Provide the domain that the site represents (optional). This will overwrite the need to use the name of the site as a slug.'
+        );
 
         $site = new \MultiSite();
 
@@ -86,6 +90,7 @@ class AddSite extends Command
         $site->host = $host;
         $site->collation = $collation;
         $site->charset = $charset;
+        $site->domain = $domain;
 
         $result = $site->save();
 

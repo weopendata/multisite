@@ -14,7 +14,7 @@ class AddDomainToSite extends Migration {
 	{
 		// Add domain to the multisite table
 		Schema::table('multisite', function ($table) {
-			$table->string('domain', 255);
+			$table->string('domain', 255)->nullable();
 		});
 	}
 
