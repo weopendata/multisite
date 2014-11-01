@@ -12,17 +12,28 @@ class BaseController extends \Controller
         // Split the uri to check for an (optional) extension (=format)
         preg_match('/([^\.]*)(?:\.(.*))?$/', $url, $matches);
 
+        // Identifier will at least be "/"
         $identifier = $matches[0];
 
-        // Multi-site is only allowed thus far at 1 'uri-identifier'
-        // meaning /multi-site-identifier/rest/goes/here
-        if (!empty($identifier)) {
+        // Check if the domain is mapped onto a site slug
+        $site = $this->checkForDomain();
 
-            // Check if the domain is mapped onto a site slug
-            $site = $this->checkForDomain();
+        if (!empty($site)) {
 
-            if (!empty($site)) {
-                self::$STRIP_SLUG = false;
+            // A site has been found
+            self::$STRIP_SLUG = false;
+
+            // Make a distinction between a normal or an api request
+            $pieces = explode('/', $identifier);
+
+            if (strtolower($pieces[0] . '/' . @$pieces[1]) == 'api/admin') {
+
+                unset($pieces[0]);
+                unset($pieces[1]);
+
+                return $this->api('', implode('/', $pieces));
+
+            } else {
 
                 // Fetch the configuration for the site
                 $site_config = $site->toArray();
@@ -37,56 +48,83 @@ class BaseController extends \Controller
                 $view = $response->getOriginalContent();
 
                 return $response;
-            } else {
-                // Try to find the site identifier and look for a match
-                $pieces = explode('/', $identifier);
-
-                $site = array_shift($pieces);
-
-                if (empty($site)) {
-                    $this->showHomePage();
-                } else {
-                    self::$STRIP_SLUG = true;
-
-                    // Fetch the configuration for the site
-                    $site_config = $this->getSite($site);
-
-                    // Swap the database configuration
-                    $this->switchDatabase($site_config);
-
-                    $resource_identifier = implode('/', $pieces);
-
-                    $base_controller = new \Tdt\Core\BaseController();
-
-                    return $base_controller->handleRequest($resource_identifier);
-                }
             }
         } else {
-            $this->showHomePage();
+                // Try to find the site identifier and look for a match
+            $pieces = explode('/', $identifier);
+
+            $site = array_shift($pieces);
+
+            if (empty($site)) {
+                $this->showHomePage();
+            } else {
+                self::$STRIP_SLUG = true;
+
+                    // Fetch the configuration for the site
+                $site_config = $this->getSite($site);
+
+                    // Swap the database configuration
+                $this->switchDatabase($site_config);
+
+                $resource_identifier = implode('/', $pieces);
+
+                $base_controller = new \Tdt\Core\BaseController();
+
+                return $base_controller->handleRequest($resource_identifier);
+            }
         }
     }
 
     /**
      * Handle api requests for a specific site
      *
-     * @param string $site The name of the site
-     * @param string $api  The api requests
+     * @param string $sitename The name of the site
+     * @param string $api      The api slug
      *
      * @return \Response
      */
-    public function api($site, $api = null)
+    public function api($sitename, $api = null)
     {
         $http_method = strtolower(\Request::getMethod());
 
-        $site = ltrim($site, '/');
+        $sitename = ltrim($sitename, '/');
 
-        $site_config = $this->getSite($site);
+        // Check if the domain is mapped onto a site slug
+        $site = $this->checkForDomain();
 
-        $this->switchDatabase($site_config);
+        if (!empty($site)) {
+            self::$STRIP_SLUG = false;
+
+            // Fetch the configuration for the site
+            $site_config = $site->toArray();
+
+            // Swap the database configuration
+            $this->switchDatabase($site_config);
+        } else {
+
+            // Try to find the site identifier and look for a match
+            $pieces = explode('/', $sitename);
+
+            $site = array_shift($pieces);
+
+            if (empty($site)) {
+                $this->showHomePage();
+            } else {
+
+                self::$STRIP_SLUG = true;
+
+                // Fetch the configuration for the site
+                $site_config = $this->getSite($site);
+
+                // Swap the database configuration
+                $this->switchDatabase($site_config);
+            }
+        }
 
         if (empty($api)) {
             $api_aspect = 'datasets';
         } else {
+
             $api = ltrim($api, '/');
 
             // API exists out of two parts, the aspect part (dataset, user, ...)
